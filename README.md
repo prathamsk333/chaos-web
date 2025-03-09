@@ -1,3 +1,5 @@
+# chaos-web
+
 Chaos Website 🎉
 Welcome to the Chaos Website! This is a hilarious, intentionally chaotic website designed to confuse, amuse, and entertain. Navigate through the madness and see how long you can survive!
 
@@ -57,4 +59,4 @@ Your cursor turns into a tiny chicken that runs away or leaves a trail of spaghe
 Press "C" three times to activate Chaos Mode. Everything goes haywire!
 
 
-# chaos-web
+
