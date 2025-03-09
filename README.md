@@ -1,37 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Chaos Website 🎉
+Welcome to the Chaos Website! This is a hilarious, intentionally chaotic website designed to confuse, amuse, and entertain. Navigate through the madness and see how long you can survive!
 
-## Getting Started
+Features 🚀
+1. Random Redirects
+Click any button and get redirected to a random page. Who knows where you'll end up?
 
-First, run the development server:
+2. Glitchy Design
+Text and images glitch, shake, and flicker. It’s like the website is alive (and a little broken).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+3. Fake Loading Screens
+Endless loading bars that never finish. "Loading your sense of humor... 99% complete."
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Mouse Trails
+Your cursor leaves a trail of random objects (ducks, emojis, or glitter). Sometimes it even drags things around!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+5. Confusing Navigation
+Buttons move, labels change, and menus disappear. Good luck finding your way!
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+6. Auto-Playing Sounds
+Random sounds (goat screams, laughter) play automatically. Volume controls? Nope.
 
-## Learn More
+7. Nonsensical Content
+Gibberish text, random images, and absurd captions. "This is a toaster." (It’s actually a cat.)
 
-To learn more about Next.js, take a look at the following resources:
+8. Fake Error Messages
+"404: Brain Not Found." "Your Internet is Too Slow (Just Kidding)."
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+9. Easter Eggs
+Hidden clickable elements that trigger funny messages or animations. Can you find them all?
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+11. Infinite Clicking
+Buttons that move away when clicked. After 10 clicks: "You’ve won nothing! Congratulations!"
 
-## Deploy on Vercel
+12. Upside-Down Pages
+The entire website flips upside down or sideways. Tilt your head or rotate your screen!
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+13. Fake Progress
+Progress bars that go backward or quizzes with ridiculous results. "Congratulations, you’re 0% qualified to be a potato."
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+14. Random Animations
+Flying toasters, dancing bananas, and other nonsense animations.
+
+16. Fake "You’ve Won!" Pop-ups
+"Congratulations! You’ve won a free trip to Mars!" (Spoiler: You didn’t.)
+
+17. Cursed Cursor
+Your cursor turns into a tiny chicken that runs away or leaves a trail of spaghetti.
+
+18. Fake Virus Alert
+"Your computer has been infected with fun!" The "Fix It" button just makes it worse.
+
+19. Never-Ending CAPTCHA
+"Select all images with tacos." (All images are tacos.)
+
+20. Secret Chaos Mode
+Press "C" three times to activate Chaos Mode. Everything goes haywire!
+
+
 # chaos-web
