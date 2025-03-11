@@ -1,386 +1,643 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Zap, AlertTriangle, Sparkles, ArrowRight, Bomb, Skull } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import ChaosButton from "@/components/chaos-button"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowLeft, User, Lock, Mail, Calendar, AlertCircle, X, RefreshCw, Volume2, VolumeX } from "lucide-react"
 import GlitchText from "@/components/glitch-text"
-import MouseTrail from "@/components/mouse-trail"
 import RandomPopup from "@/components/random-popup"
-import FakeLoader from "@/components/fake-loader"
-import CursedCursor from "@/components/cursed-cursor"
-import { useAchievements } from "@/lib/use-achievements"
 
-const randomPages = ["/random-1", "/random-2", "/random-3", "/random-4", "/captcha", "/dark-room", "/hacked"]
+// Password requirements that change randomly
+const passwordRequirements = [
+  "Must be exactly 17 characters long",
+  "Must include at least one hieroglyph (𓀀, 𓂀) and a Roman numeral (I, V, X)",
+  "Must contain a prime number of vowels",
+  "Must include the name of a Greek god",
+  "Must have exactly 3 special characters in ascending ASCII order",
+  "Must spell something funny when read backward",
+  "Must include a chess notation (e.g., Nf3, e4)",
+  "Must contain a valid hexadecimal color code",
+  "Must include a chemical element symbol",
+  "Must have a Fibonacci sequence of at least 3 numbers",
+  "Must contain a valid emoji sequence",
+  "Must include a line from Shakespeare",
+  "Must contain a valid IP address",
+  "Must include a programming language name",
+  "Must have a palindrome of at least 5 characters",
+]
 
-export default function Home() {
+// Unhelpful error messages
+const errorMessages = [
+  "Hmm... not quite, but nice try!",
+  "Almost there! Just kidding, not even close.",
+  "Invalid username? Maybe. Maybe not. Who's to say?",
+  "Your password is like your sense of humor - needs work.",
+  "Our servers don't like that input. They're very judgmental.",
+  "That's a creative approach! Unfortunately, creativity isn't allowed here.",
+  "The login hamsters are confused by your input.",
+  "According to our records, you don't exist. Existential crisis incoming!",
+  "Our AI analyzed your login attempt and is now questioning its existence.",
+  "Your password is in another castle.",
+  "Error 404: Success not found.",
+  "The system has determined you're too awesome to log in. Try being less cool.",
+  "Your login attempt has been filed under 'Nice Effort, Though'.",
+  "Our servers are currently taking a coffee break. Try again never.",
+]
+
+// Impossible CAPTCHA challenges
+const captchaChallenges = [
+  "Select all pictures with oxygen in them",
+  "Prove you're human by solving this 7x7 Sudoku",
+  "Click on all images that contain the concept of happiness",
+  "Identify all squares with visible dark matter",
+  "Select all images of animals thinking about quantum physics",
+  "Find the square root of this image",
+  "Identify all pictures taken on a Tuesday",
+  "Select all images containing exactly 17 atoms",
+  "Click on all pictures that smell like cinnamon",
+  "Identify all images that will exist in the future",
+]
+
+// Form field types that can randomly appear
+type FieldType =
+  | "username"
+  | "password"
+  | "email"
+  | "confirmEmail"
+  | "favoriteColor"
+  | "petName"
+  | "mothersMaidenName"
+  | "firstCar"
+  | "childhoodStreet"
+  | "socialSecurityNumber"
+
+// Field labels for each type
+const fieldLabels: Record<FieldType, string> = {
+  username: "Username",
+  password: "Password",
+  email: "Email",
+  confirmEmail: "Confirm Email",
+  favoriteColor: "Favorite Color",
+  petName: "First Pet's Name",
+  mothersMaidenName: "Mother's Maiden Name",
+  firstCar: "First Car Model",
+  childhoodStreet: "Childhood Street",
+  socialSecurityNumber: "Social Security Number (for security purposes only)",
+}
+
+export default function LoginPage() {
   const router = useRouter()
-  const [progress, setProgress] = useState(0)
-  const [survivalTime, setSurvivalTime] = useState(0)
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("")
+  const [age, setAge] = useState("")
+  const [currentRequirement, setCurrentRequirement] = useState(0)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [showCaptcha, setShowCaptcha] = useState(false)
+  const [captchaChallenge, setCaptchaChallenge] = useState(0)
+  const [captchaSolved, setCaptchaSolved] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
   const [popupContent, setPopupContent] = useState("")
-  const [clickCount, setClickCount] = useState(0)
-  const [isReverseScroll, setIsReverseScroll] = useState(false)
-  const [chaosMode, setChaosMode] = useState(false)
-  const [keySequence, setKeySequence] = useState<string[]>([])
-  const { achievements, unlockAchievement } = useAchievements()
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [show2FA, setShow2FA] = useState(false)
+  const [verificationCode, setVerificationCode] = useState("")
+  const [fieldTypes, setFieldTypes] = useState<FieldType[]>(["username", "password", "email"])
+  const [fieldPositions, setFieldPositions] = useState<number[]>([0, 1, 2])
+  const [showTerminal, setShowTerminal] = useState(false)
+  const [terminalText, setTerminalText] = useState("")
+  const [showSurvey, setShowSurvey] = useState(false)
+  const [playingMusic, setPlayingMusic] = useState(false)
+  const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
-  // Random emojis
-  const emojis = ["🤪", "🎉", "🚀", "🔥", "👽", "🤖", "🦄", "🍕", "💥", "🌈"]
-  const [randomEmojis, setRandomEmojis] = useState<string[]>([])
-
-  // Fake loading bar
+  // Initialize audio
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) return Math.max(90, prev - Math.random() * 10)
-        return prev + Math.random() * 5
-      })
-    }, 500)
-    return () => clearInterval(interval)
-  }, [])
+    const audio = new Audio("/elevator-music.mp3")
+    audio.loop = true
+    setAudioRef(audio)
 
-  // Survival timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSurvivalTime((prev) => {
-        const newTime = prev + 1
-        if (newTime === 30) unlockAchievement("survive30")
-        if (newTime === 60) unlockAchievement("survive60")
-        return newTime
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [unlockAchievement])
-
-  // Random emoji generator
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newEmojis = Array.from({ length: 5 }, () => emojis[Math.floor(Math.random() * emojis.length)])
-      setRandomEmojis(newEmojis)
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Random scroll direction
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsReverseScroll((prev) => (Math.random() > 0.7 ? !prev : prev))
-    }, 10000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Handle scroll direction
-  useEffect(() => {
-    if (!isReverseScroll) return
-
-    const handleWheel = (e: WheelEvent) => {
-      window.scrollBy(0, -e.deltaY)
-      e.preventDefault()
+    return () => {
+      audio.pause()
+      audio.src = ""
     }
+  }, [])
 
-    window.addEventListener("wheel", handleWheel, { passive: false })
-    return () => window.removeEventListener("wheel", handleWheel)
-  }, [isReverseScroll])
-
-  // Random popups
+  // Change password requirement when typing password
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.3) {
-        const messages = [
-          "Are you sure you want to continue?",
-          "Your computer has been infected with FUN!",
-          "ERROR 404: Sanity not found",
-          "Congratulations! You've won absolutely nothing!",
-          "This website will self-destruct in 10 seconds... just kidding!",
-          "Warning: Excessive exposure to chaos may cause uncontrollable laughter",
-          "Fun fact: This popup exists solely to annoy you",
-          "Breaking news: You're still here for some reason",
-        ]
-        setPopupContent(messages[Math.floor(Math.random() * messages.length)])
-        setShowPopup(true)
-        unlockAchievement("popup")
-      }
-    }, 10000)
-    return () => clearInterval(interval)
-  }, [unlockAchievement])
+    if (password.length > 0 && password.length % 3 === 0) {
+      setCurrentRequirement(Math.floor(Math.random() * passwordRequirements.length))
+    }
+  }, [password])
 
-  // Secret chaos mode key sequence detector
+  // Randomly change field types and positions
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "c") {
-        setKeySequence((prev) => {
-          const updated = [...prev, "c"]
-          if (updated.length > 3) updated.shift()
-          return updated
+    const allFieldTypes: FieldType[] = [
+      "username",
+      "password",
+      "email",
+      "confirmEmail",
+      "favoriteColor",
+      "petName",
+      "mothersMaidenName",
+      "firstCar",
+      "childhoodStreet",
+    ]
+
+    const handleInputChange = () => {
+      // 30% chance to change a random field
+      if (Math.random() < 0.3) {
+        setFieldTypes((prev) => {
+          const newTypes = [...prev]
+          const randomIndex = Math.floor(Math.random() * newTypes.length)
+          const randomType = allFieldTypes[Math.floor(Math.random() * allFieldTypes.length)]
+          newTypes[randomIndex] = randomType
+          return newTypes
         })
-      } else {
-        setKeySequence([])
+      }
+
+      // 20% chance to shuffle positions
+      if (Math.random() < 0.2) {
+        setFieldPositions((prev) => {
+          return [...prev].sort(() => Math.random() - 0.5)
+        })
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
+    // Add event listener for any input change
+    document.addEventListener("input", handleInputChange)
+
+    return () => {
+      document.removeEventListener("input", handleInputChange)
+    }
   }, [])
 
-  // Check for chaos mode activation
+  // Random popups when typing
   useEffect(() => {
-    if (keySequence.join("") === "ccc") {
-      setChaosMode(true)
-      unlockAchievement("chaosMode")
-      setPopupContent("🔥 CHAOS MODE ACTIVATED! 🔥 Things are about to get WILD!")
-      setShowPopup(true)
+    const totalChars = (username + password + email + age).length
 
-      // Auto-disable after 15 seconds
-      setTimeout(() => {
-        setChaosMode(false)
-        setPopupContent("Chaos mode deactivated. That was... intense.")
+    if (totalChars > 0 && totalChars % 10 === 0) {
+      const popups = [
+        "Did you know? 87% of users prefer our competitor's login page!",
+        "SPECIAL OFFER: Upgrade to Premium Login for only $9.99/month!",
+        "Your computer may be infected with 37 viruses! Click here to scan now!",
+        "Congratulations! You're our 1,000,000th visitor today!",
+        "Hot singles in YOUR AREA want to help you log in!",
+        "BREAKING NEWS: Login pages are going extinct! Act now!",
+        "WARNING: Your login session will self-destruct in 10 seconds!",
+        "Survey: How would you rate this login experience so far?",
+        "Fun fact: Most users give up at this point!",
+        "Your login attempt is being broadcast live to 3 million viewers!",
+      ]
+
+      setPopupContent(popups[Math.floor(Math.random() * popups.length)])
+      setShowPopup(true)
+    }
+
+    // 5% chance to show survey
+    if (totalChars > 20 && !showSurvey && Math.random() < 0.05) {
+      setShowSurvey(true)
+    }
+
+    // 10% chance to start playing music
+    if (totalChars > 15 && !playingMusic && Math.random() < 0.1) {
+      if (audioRef) {
+        audioRef.play()
+        setPlayingMusic(true)
+      }
+    }
+  }, [username, password, email, age, showSurvey, playingMusic, audioRef])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Show random error message
+    setErrorMessage(errorMessages[Math.floor(Math.random() * errorMessages.length)])
+
+    // 50% chance to show CAPTCHA
+    if (Math.random() < 0.5 && !captchaSolved) {
+      setShowCaptcha(true)
+      setCaptchaChallenge(Math.floor(Math.random() * captchaChallenges.length))
+      return
+    }
+
+    // 30% chance to show 2FA
+    if (Math.random() < 0.3 && !show2FA) {
+      setShow2FA(true)
+      return
+    }
+
+    // 20% chance to show terminal
+    if (Math.random() < 0.2) {
+      setShowTerminal(true)
+      simulateHacking()
+      return
+    }
+
+    // Otherwise, pretend to submit
+    setIsSubmitting(true)
+
+    setTimeout(() => {
+      setIsSubmitting(false)
+
+      // 50% chance to "log in as someone else"
+      if (Math.random() < 0.5) {
+        setPopupContent(
+          "Congratulations! You are now logged into someone else's account. Please respect their privacy while snooping around.",
+        )
         setShowPopup(true)
-      }, 15000)
-    }
-  }, [keySequence, unlockAchievement])
+      } else {
+        // Reset form with a snarky message
+        setUsername("")
+        setPassword("")
+        setEmail("")
+        setAge("")
+        setErrorMessage("Now do it again, but better.")
+      }
+    }, 3000)
+  }
 
-  const handleChaosClick = () => {
-    setClickCount((prev) => {
-      const newCount = prev + 1
-      if (newCount === 5) unlockAchievement("click5")
-      if (newCount === 10) unlockAchievement("click10")
-      return newCount
-    })
+  const handleCaptchaClick = () => {
+    // Make the CAPTCHA disappear before they can solve it
+    setTimeout(() => {
+      setShowCaptcha(false)
+      setCaptchaSolved(true)
+      setErrorMessage("CAPTCHA verification failed successfully!")
+    }, 300)
+  }
 
-    if (clickCount === 9) {
-      setPopupContent(
-        "You've clicked 10 times! Why? What did you expect? A prize? Here's your prize: 🏆 It's imaginary!",
-      )
-      setShowPopup(true)
-    }
+  const handleButtonMouseOver = () => {
+    // Move the button away when hovering
+    if (formRef.current) {
+      const formWidth = formRef.current.clientWidth
+      const formHeight = formRef.current.clientHeight
 
-    // 50% chance to redirect to a random page
-    if (Math.random() > 0.5) {
-      const randomPage = randomPages[Math.floor(Math.random() * randomPages.length)]
-      router.push(randomPage)
+      setButtonPosition({
+        x: (Math.random() - 0.5) * formWidth * 0.5,
+        y: (Math.random() - 0.5) * formHeight * 0.2,
+      })
     }
   }
 
+  const simulateHacking = () => {
+    const hackingLines = [
+      "Initializing login sequence...",
+      "Bypassing security protocols...",
+      "Injecting SQL queries...",
+      "Cracking password hash...",
+      "Bypassing firewall...",
+      "Accessing mainframe...",
+      "Downloading user data...",
+      "Encrypting connection...",
+      "Spoofing IP address...",
+      "Rerouting through proxy servers...",
+      "Executing binary payload...",
+      "Compiling kernel modules...",
+      "Deploying neural network...",
+      "Mining cryptocurrency in background...",
+      "Launching cyber missiles...",
+      "Enhancing pixels...",
+      "Reversing polarity...",
+      "Hacking the Gibson...",
+      "Login failed. Try again with better hacking skills.",
+    ]
+
+    let i = 0
+    const interval = setInterval(() => {
+      if (i < hackingLines.length) {
+        setTerminalText((prev) => prev + hackingLines[i] + "\n")
+        i++
+      } else {
+        clearInterval(interval)
+        setTimeout(() => {
+          setShowTerminal(false)
+          setTerminalText("")
+          setErrorMessage("Hacking attempt detected! Security alerted. Just kidding, we don't have security.")
+        }, 1000)
+      }
+    }, 300)
+  }
+
+  const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setAge(value)
+
+    // Check if age is between 10 and 30
+    const ageNum = Number.parseInt(value)
+    if (ageNum >= 10 && ageNum <= 30) {
+      setErrorMessage(`User with age ${ageNum} already exists. Try being born at a different time.`)
+    }
+  }
+
+  const handleGuestLogin = () => {
+    setPopupContent("Guest login successful! You now have access to absolutely nothing. Enjoy your stay!")
+    setShowPopup(true)
+
+    setTimeout(() => {
+      router.push("/home")
+    }, 3000)
+  }
+
+  const toggleMusic = () => {
+    if (audioRef) {
+      if (playingMusic) {
+        audioRef.pause()
+      } else {
+        audioRef.play()
+      }
+      setPlayingMusic(!playingMusic)
+    }
+  }
+
+  // Render fields in their current order
+  const renderFields = () => {
+    return fieldPositions.map((position, index) => {
+      const fieldType = fieldTypes[position]
+
+      switch (fieldType) {
+        case "username":
+          return (
+            <div key={`field-${index}`} className="mb-4">
+              <label className="block text-sm font-medium mb-1 flex items-center">
+                <User className="mr-2 h-4 w-4" /> {fieldLabels[fieldType]}
+              </label>
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full"
+                placeholder="Enter your username"
+              />
+            </div>
+          )
+
+        case "password":
+          return (
+            <div key={`field-${index}`} className="mb-4">
+              <label className="block text-sm font-medium mb-1 flex items-center">
+                <Lock className="mr-2 h-4 w-4" /> {fieldLabels[fieldType]}
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full"
+                placeholder="Enter your password"
+              />
+              <div className="mt-1 text-xs text-red-500 flex items-center">
+                <AlertCircle className="mr-1 h-3 w-3" /> Weak password
+              </div>
+              <div className="mt-1 text-xs">Current requirement: {passwordRequirements[currentRequirement]}</div>
+            </div>
+          )
+
+        case "email":
+          return (
+            <div key={`field-${index}`} className="mb-4">
+              <label className="block text-sm font-medium mb-1 flex items-center">
+                <Mail className="mr-2 h-4 w-4" /> {fieldLabels[fieldType]}
+              </label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
+                placeholder="Enter your email"
+              />
+            </div>
+          )
+
+        default:
+          return (
+            <div key={`field-${index}`} className="mb-4">
+              <label className="block text-sm font-medium mb-1">{fieldLabels[fieldType]}</label>
+              <Input
+                type="text"
+                className="w-full"
+                placeholder={`Enter your ${fieldLabels[fieldType].toLowerCase()}`}
+              />
+            </div>
+          )
+      }
+    })
+  }
+
   return (
-    <main
-      className={`min-h-screen overflow-hidden relative ${
-        chaosMode
-          ? "bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-red-500 via-yellow-500 to-purple-500 animate-spin-slow"
-          : "bg-gradient-to-r from-purple-600 via-pink-500 to-red-500"
-      }`}
-      style={{
-        cursor: Math.random() > 0.5 ? "crosshair" : "pointer",
-      }}
-    >
-      <MouseTrail chaosMode={chaosMode} />
-      <CursedCursor active={chaosMode} />
-
-
-
-      {/* Secret chaos mode instructions */}
-      <div className="fixed bottom-5 left-5 opacity-60 hover:opacity-60 z-50 transition-opacity text-xs text-white">
-        <p>Psst! Press 'C' three times for a surprise...</p>
+    <div className="min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex flex-col items-center justify-center p-4">
+      <div className="absolute top-4 left-4 z-10">
+        <Link href="/">
+          <Button variant="outline" className="bg-white/20 border-white text-white hover:bg-white/30">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Chaos
+          </Button>
+        </Link>
       </div>
 
-      {/* Random floating emojis */}
-      {randomEmojis.map((emoji, i) => (
-        <div
-          key={i}
-          className={`absolute text-4xl ${chaosMode ? "animate-bounce-fast" : "animate-float"}`}
-          style={{
-            left: `${Math.random() * 90}%`,
-            top: `${Math.random() * 90}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            transform: `rotate(${Math.random() * 360}deg) scale(${chaosMode ? 1.5 : 1})`,
-          }}
-        >
-          {emoji}
-        </div>
-      ))}
-
-      <div className={`container mx-auto px-4 py-10 ${chaosMode ? "animate-shake" : ""}`}>
-        <header className="mb-8 text-center">
-          <GlitchText className="text-6xl font-extrabold text-white mb-4" intensity={chaosMode ? "high" : "normal"}>
-            Welcome to the CHAOS ZONE!
-          </GlitchText>
-          <p className="text-xl text-white animate-pulse">
-            How long can you survive? <span className="font-bold">{survivalTime} seconds</span>
-          </p>
-          {chaosMode && <div className="mt-2 text-yellow-300 font-bold animate-bounce">🔥 CHAOS MODE ACTIVE 🔥</div>}
-        </header>
-
-        <div className="mb-8">
-          <p className="text-white mb-2">Loading your sanity...</p>
-          <FakeLoader value={progress} chaosMode={chaosMode} />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <div
-            className={`bg-white/20 backdrop-blur-sm p-6 rounded-lg border-2 border-yellow-300 shadow-neon ${chaosMode ? "animate-bounce-slow" : "animate-shake"}`}
+      {playingMusic && (
+        <div className="absolute top-4 right-4 z-10">
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-white/20 border-white text-white hover:bg-white/30"
+            onClick={toggleMusic}
           >
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-              <AlertTriangle className="mr-2" /> Warning!
-            </h2>
-            <p className="text-white">
-              This website is completely <span className="font-bold text-yellow-300">CHAOTIC</span>! Buttons might move,
-              pages might change, and your cursor might do weird things.
-              {randomEmojis[0]} {randomEmojis[1]}
-            </p>
-            <div className="mt-4 flex justify-center">
-              <ChaosButton onClick={handleChaosClick} chaosMode={chaosMode}>
-                Click Me (If You Dare)
-              </ChaosButton>
+            {playingMusic ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </Button>
+        </div>
+      )}
+
+      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-6">
+        <div className="text-center mb-6">
+          <GlitchText className="text-2xl font-bold">Chaos Login</GlitchText>
+          <p className="text-gray-500 text-sm mt-1">Where logging in is an adventure!</p>
+        </div>
+
+        {errorMessage && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">{errorMessage}</div>}
+
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          {renderFields()}
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1 flex items-center">
+              <Calendar className="mr-2 h-4 w-4" /> Age
+            </label>
+            <Input
+              type="number"
+              value={age}
+              onChange={handleAgeChange}
+              className="w-full"
+              placeholder="Enter your age"
+              min="0"
+              max="150"
+            />
+          </div>
+
+          {showCaptcha && (
+            <div className="mb-4 p-4 border border-gray-200 rounded-md">
+              <div className="text-sm font-medium mb-2">{captchaChallenges[captchaChallenge]}</div>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square bg-gray-100 rounded-md flex items-center justify-center cursor-pointer hover:bg-gray-200"
+                  >
+                    <Image src={`/placeholder.svg?height=80&width=80`} alt="CAPTCHA image" width={80} height={80} />
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center">
+                <Checkbox id="captcha" onClick={handleCaptchaClick} />
+                <label htmlFor="captcha" className="ml-2 text-sm">
+                  I'm not a robot (probably)
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div
-            className={`bg-black/30 backdrop-blur-sm p-6 rounded-lg border-2 border-cyan-400 shadow-neon ${chaosMode ? "animate-shake" : "animate-pulse-slow"}`}
-          >
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-              <Sparkles className="mr-2" /> Achievements
-            </h2>
-            <ul className="text-white space-y-2">
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("survive30") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("survive30") ? "✓" : "○"}
-                </span>
-                Survive for 30 seconds
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("survive60") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("survive60") ? "✓" : "○"}
-                </span>
-                Survive for 1 minute
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("click5") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("click5") ? "✓" : "○"}
-                </span>
-                Click 5 chaotic buttons
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("click10") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("click10") ? "✓" : "○"}
-                </span>
-                Click 10 chaotic buttons
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("popup") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("popup") ? "✓" : "○"}
-                </span>
-                Trigger a random popup
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("chaosMode") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("chaosMode") ? "✓" : "○"}
-                </span>
-                Discover chaos mode
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("darkRoom") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("darkRoom") ? "✓" : "○"}
-                </span>
-                Escape the dark room
-              </li>
-              <li className="flex items-center">
-                <span className={`mr-2 ${achievements.includes("captcha") ? "text-green-400" : "text-gray-400"}`}>
-                  {achievements.includes("captcha") ? "✓" : "○"}
-                </span>
-                Solve the impossible captcha
-              </li>
-            </ul>
-          </div>
-        </div>
+          {show2FA && (
+            <div className="mb-4 p-4 border border-gray-200 rounded-md">
+              <div className="text-sm font-medium mb-2">Two-Factor Authentication Required</div>
+              <p className="text-xs text-gray-500 mb-3">
+                We've sent a verification code to a fax machine in {Math.random() > 0.5 ? "Antarctica" : "North Korea"}.
+                Please enter the code below.
+              </p>
+              <Input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                className="w-full mb-2"
+                placeholder="Enter 200-digit verification code"
+              />
+              <div className="text-xs text-gray-500">
+                Alternatively, solve this riddle: The more you take, the more you leave behind. What am I?
+              </div>
+            </div>
+          )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-12">
-          {[1, 2, 3].map((i) => (
+          <div className="flex justify-between items-center">
+            <Button type="button" variant="outline" onClick={handleGuestLogin}>
+              Login as Guest
+            </Button>
+
             <div
-              key={i}
-              className={`relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-lg border-2 border-white/30 shadow-lg transform hover:scale-105 transition-all ${chaosMode ? "animate-bounce-random" : ""}`}
+              className="relative"
               style={{
-                animationDelay: `${i * 0.2}s`,
-                transform: `rotate(${Math.random() * 3 - 1.5}deg)`,
+                transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
+                transition: "transform 0.2s ease-out",
               }}
             >
-              <div className="absolute -right-4 -top-4 bg-yellow-400 text-black font-bold px-4 py-1 rotate-12 shadow-md">
-                WOW!
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center">
-                <Zap className="mr-2" /> Chaotic Feature #{i}
-              </h3>
-              <p className="text-white/80">
-                This box contains absolutely {i === 2 ? "something" : "nothing"} important! Maybe it will{" "}
-                {i === 1 ? "explode" : "implode"} if you stare at it too long.
-              </p>
-              <ChaosButton
-                variant={i === 2 ? "destructive" : "default"}
-                className="mt-4"
-                onClick={handleChaosClick}
-                chaosMode={chaosMode}
-              >
-                {i === 1 ? "Don't Click" : i === 2 ? "Seriously, Don't" : "OK Fine, Click Me"}
-              </ChaosButton>
+              <Button type="submit" onMouseEnter={handleButtonMouseOver} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </Button>
             </div>
-          ))}
-        </div>
+          </div>
+        </form>
 
-        <div
-          className={`bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 p-8 rounded-lg border-4 border-white shadow-xl mb-12 ${chaosMode ? "animate-shake" : "animate-bounce-slow"}`}
-        >
-          <h2 className="text-3xl font-bold text-white mb-4 text-center flex items-center justify-center">
-            <Bomb className="mr-2" /> CHAOS CHALLENGE
-          </h2>
-          <p className="text-white text-center text-xl mb-6">
-            Can you find all the hidden features without losing your mind?
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Link href="/screaming-button">
-              <Button
-                variant="outline"
-                className="w-full bg-white/20 backdrop-blur-sm border-2 border-white hover:bg-white/40 text-white"
-              >
-                Screaming Button <Skull className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/dark-room">
-              <Button
-                variant="outline"
-                className="w-full bg-black/50 backdrop-blur-sm border-2 border-white hover:bg-black/70 text-white"
-              >
-                Dark Room Challenge
-              </Button>
-            </Link>
-            <Link href="/captcha">
-              <Button
-                variant="outline"
-                className="w-full bg-white/20 backdrop-blur-sm border-2 border-white hover:bg-white/40 text-white"
-              >
-                Impossible CAPTCHA
-              </Button>
-            </Link>
+        {showTerminal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-black w-full max-w-2xl rounded-md p-4 border border-green-500">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-green-500 font-mono text-sm">Terminal - Hacking in progress</div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-green-500 hover:text-green-400 hover:bg-transparent"
+                  onClick={() => setShowTerminal(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="bg-black text-green-500 font-mono text-xs h-64 overflow-y-auto p-2 whitespace-pre-line">
+                {terminalText}
+                <span className="animate-pulse">_</span>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <Link href={randomPages[Math.floor(Math.random() * randomPages.length)]}>
-              <Button
-                variant="outline"
-                className="w-full bg-white/20 backdrop-blur-sm border-2 border-white hover:bg-white/40 text-white"
-              >
-                Take me somewhere random <ArrowRight className="ml-2" />
+        )}
+
+        {showSurvey && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-md rounded-lg p-6 shadow-xl">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">Quick Survey</h3>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowSurvey(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="mb-4">
+                <p className="mb-2 font-medium">How would you rate this login experience?</p>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <Button
+                      key={rating}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setShowSurvey(false)
+                        setPopupContent(`Thank you for your ${rating}/5 rating! We'll completely ignore it.`)
+                        setShowPopup(true)
+                      }}
+                    >
+                      {rating}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <p className="mb-2 font-medium">Would you recommend this login page to your enemies?</p>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowSurvey(false)
+                      setPopupContent("We've automatically signed up all your contacts for our newsletter!")
+                      setShowPopup(true)
+                    }}
+                  >
+                    Yes
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowSurvey(false)
+                      setPopupContent("We've automatically signed up all your contacts for our newsletter anyway!")
+                      setShowPopup(true)
+                    }}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              <Button className="w-full" onClick={() => setShowSurvey(false)}>
+                Submit Feedback
               </Button>
-            </Link>
-            <ChaosButton className="w-full" onClick={handleChaosClick} chaosMode={chaosMode}>
-              I'm feeling chaotic
-            </ChaosButton>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Random popup */}
-      {showPopup && <RandomPopup content={popupContent} onClose={() => setShowPopup(false)} chaosMode={chaosMode} />}
-    </main>
+      {showPopup && <RandomPopup content={popupContent} onClose={() => setShowPopup(false)} />}
+    </div>
   )
 }
 
