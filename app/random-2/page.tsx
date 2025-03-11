@@ -18,7 +18,7 @@ export default function RandomPage2() {
     <main className="min-h-screen bg-gradient-to-r from-green-400 to-teal-500 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <Link href="/">
+          <Link href="/home">
             <Button variant="outline" className="border-white text-white hover:bg-white/20">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Chaos

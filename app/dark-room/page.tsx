@@ -54,7 +54,7 @@ export default function DarkRoom() {
 
       // Redirect after 5 seconds
       setTimeout(() => {
-        router.push("/")
+        router.push("/home")
       }, 5000)
     } else {
       setMessage("That's not the password. Keep searching in the darkness...")
@@ -160,7 +160,7 @@ export default function DarkRoom() {
             </form>
 
             <div className="mt-4 text-center">
-              <Link href="/">
+              <Link href="/home">
                 <Button variant="outline" className="border-gray-700 text-gray-400 hover:bg-gray-800">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Give Up
@@ -181,7 +181,7 @@ export default function DarkRoom() {
           </p>
           <p className="text-black text-center text-sm mb-4">Redirecting you back to chaos in a few seconds...</p>
           <div className="flex justify-center">
-            <Link href="/">
+            <Link href="/home">
               <Button className="bg-black hover:bg-gray-800 text-white">Return to Chaos Now</Button>
             </Link>
           </div>

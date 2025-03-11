@@ -76,7 +76,7 @@ export default function ScreamingButton() {
       className="relative min-h-screen bg-gradient-to-r from-red-500 to-orange-500 overflow-hidden flex flex-col"
     >
       <div className="absolute top-4 left-4 z-10">
-        <Link href="/">
+        <Link href="/home">
           <Button variant="outline" className="bg-white/20 border-white text-white hover:bg-white/30">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Chaos
@@ -142,7 +142,7 @@ export default function ScreamingButton() {
               You've successfully tortured a button until it lost its mind. Are you happy with yourself? IS THIS WHAT
               YOU WANTED?!
             </p>
-            <Link href="/">
+            <Link href="/home">
               <Button>Escape the Screams</Button>
             </Link>
           </div>

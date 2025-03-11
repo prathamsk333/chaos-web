@@ -123,7 +123,7 @@ export default function CaptchaPage() {
         setShowSuccess(true)
         unlockAchievement("captcha")
         setTimeout(() => {
-          router.push("/")
+          router.push("/home")
         }, 5000)
       } else {
         // Move to next captcha
@@ -268,7 +268,7 @@ export default function CaptchaPage() {
             </div>
 
             <div className="flex justify-between">
-              <Link href="/">
+              <Link href="/home">
                 <Button variant="outline" type="button">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Give Up
@@ -297,7 +297,7 @@ export default function CaptchaPage() {
           <p className="text-sm text-gray-500 text-center mb-4">Redirecting you back to chaos in a few seconds...</p>
 
           <div className="flex justify-center">
-            <Link href="/">
+            <Link href="/home">
               <Button>Return to Chaos Now</Button>
             </Link>
           </div>

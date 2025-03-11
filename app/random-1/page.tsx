@@ -37,7 +37,7 @@ export default function RandomPage1() {
     <main className="min-h-screen bg-gradient-to-r from-red-500 to-orange-500 p-8 flex flex-col items-center justify-center">
       <div className="max-w-2xl w-full bg-black/30 backdrop-blur-md rounded-lg p-8 border-2 border-yellow-300 shadow-neon">
         <div className="flex justify-between items-center mb-8">
-          <Link href="/">
+          <Link href="/home">
             <Button variant="outline" className="border-white text-white hover:bg-white/20">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Chaos

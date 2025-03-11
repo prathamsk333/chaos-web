@@ -47,7 +47,7 @@ export default function RandomPage4() {
       <div className="max-w-2xl w-full transition-transform duration-1000 ease-in-out" style={getOrientationStyle()}>
         <div className="bg-white/20 backdrop-blur-md rounded-lg p-8 border-2 border-yellow-300 shadow-lg">
           <div className="flex justify-between items-center mb-8">
-            <Link href="/">
+            <Link href="/home">
               <Button variant="outline" className="border-white text-white hover:bg-white/20">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Chaos

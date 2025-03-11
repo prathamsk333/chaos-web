@@ -35,7 +35,7 @@ export default function EscapePage() {
           </p>
 
           <div className="pt-4">
-            <Link href="/">
+            <Link href="/home">
               <Button className="bg-red-500 hover:bg-red-600 text-white">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Return to Chaos

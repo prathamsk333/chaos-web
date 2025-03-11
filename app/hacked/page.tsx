@@ -64,7 +64,7 @@ export default function HackedPage() {
             long!
           </p>
           <p className="text-sm text-gray-500 mb-8">Your computer is fine. Probably.</p>
-          <Link href="/">
+          <Link href="/home">
             <Button>Back to Chaos</Button>
           </Link>
         </div>
