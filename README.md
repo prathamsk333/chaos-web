@@ -70,7 +70,7 @@ Press **"C"** three times to activate Chaos Mode. Everything goes haywire!
 ## 🚀 Get Started
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/chaos-website.git
+   git clone https://github.com/prathamsk333/chaos-web.git
    ```
 2. Install dependencies:
    ```bash
